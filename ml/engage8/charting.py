@@ -1,4 +1,4 @@
-"""Manual charting — bring your own opponent.
+"""Manual charting: bring your own opponent.
 
 For teams that aren't in nflverse (your actual Friday/Saturday opponent), chart
 their plays into a simple CSV and load it into the same canonical schema the

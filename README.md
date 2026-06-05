@@ -1,84 +1,82 @@
 # Engage Eight
 
-> AI pre-snap prediction & defensive tendency engine.
+> A pre-snap prediction and defensive tendency engine for football.
 
-Engage Eight ingests football play-by-play data and answers the two questions a
-defensive coordinator asks before every snap:
+Engage Eight ingests play-by-play data and answers the two questions a defensive
+coordinator asks before every snap:
 
-1. **What is the offense most likely to do?** A calibrated run/pass + explosive
-   probability (and a play-leaning), given down, distance, field position, score,
-   time, and formation/personnel when available.
-2. **What are their tendencies?** A tendency matrix sliced by down & distance,
+1. **What is the offense most likely to do?** A calibrated run/pass and explosive
+   probability (plus a play-leaning), given down, distance, field position, score,
+   time, and formation or personnel when available.
+2. **What are their tendencies?** A tendency matrix sliced by down and distance,
    field zone, formation, and hash, so you can self-scout or scout an opponent.
 
-It trains on free, open **nflverse** NFL play-by-play, and also lets you **chart a
-real opponent by hand** so it works for teams that aren't in public datasets.
+It trains on free, open nflverse NFL play-by-play, and also lets you chart a real
+opponent by hand so it works for teams that aren't in public datasets.
 
----
-
-## Why this exists
+## Why I built this
 
 I grew up watching Luke Kuechly, Peyton Manning, Tom Brady, and Ray Lewis. What
 truly set them apart wasn't athleticism, it was football IQ. Diagnosing what the
-offense or defense was going to do *before the snap* let them play faster and make
+offense or defense was going to do before the snap let them play faster and make
 plays no one else could.
 
 I play football too, and as a defensive player I've learned how much scout film
 matters and how slow it is to watch. I wanted a tool that could speed up film
 study and let me quiz myself on my own pre-snap reads.
 
-I believe AI can revolutionize football, and I wanted to build something that
-starts to show how; even with almost no resources. Now imagine what a team with
-millions in budget could do.
+I believe AI can change football, and I wanted to build something that starts to
+show how, even with almost no resources. Now imagine what a team with millions in
+budget could do.
 
-**Honest about accuracy.** Run/pass from situation lands around **72–75%**.
-Predicting a *specific* play family from public data is much harder (~30–45%
-top-1). The model reports its **calibration (Brier score)**, not just accuracy, and
-is validated with **time-based splits** (train on past seasons, test on the most
-recent) — never a random split, which leaks the future and inflates results.
+## A note on accuracy
 
----
+Run/pass prediction from the situation lands around 72 to 75 percent. Predicting a
+specific play family from public data is much harder (roughly 30 to 45 percent
+top-1). The model reports its calibration (Brier score), not just accuracy, and is
+validated with time-based splits: train on past seasons, test on the most recent.
+A random split would leak the future and inflate the results.
 
 ## Project status
 
 | Layer | Status |
 |-------|--------|
-| Data + ML pipeline (`ml/`) |  Working end-to-end on real NFL data |
+| Data + ML pipeline (`ml/`) | Working end-to-end on real NFL data |
 | API (`api/`) | Planned |
 | Web app (`web/`) | Planned |
-| Hudl Support | Planned |
+| Hudl support | Planned |
 
-### Measured results (run/pass, 2019–2023)
+### Measured results (run/pass, 2019-2023)
 
-Trained on 173,881 real run/pass plays (nflverse), **time-split**: train
-2019–2021, calibrate on 2022, test on the fully held-out **2023** season.
+Trained on 173,881 real run/pass plays from nflverse, with a time-split: train on
+2019-2021, calibrate on 2022, test on the fully held-out 2023 season.
 
 | Metric | Value |
 |--------|-------|
-| Test-season accuracy | **69.7%** |
+| Test-season accuracy | 69.7% |
 | Naive baseline (always guess majority) | 59.0% |
 | ROC-AUC | 0.766 |
-| Brier score (lower = better-calibrated) | 0.192 |
+| Brier score (lower is better-calibrated) | 0.192 |
 
-The model's top signals — offense identity, time remaining, field position,
-score differential, down & distance — are exactly what a coordinator reads.
-Example: it calls **89% pass** on 3rd-and-8 and **85% run** on 3rd-and-1 at the
-2-yard line.
+The model's top signals are exactly what a coordinator reads: offense identity,
+time remaining, field position, score differential, and down and distance. For
+example, it calls 89% pass on 3rd-and-8 and 85% run on 3rd-and-1 at the 2-yard
+line.
 
 ## Quickstart (ML pipeline)
 
 ```bash
 cd ml
-python -m venv .venv && source .venv/bin/activate   # use Python 3.11–3.12
+python -m venv .venv && source .venv/bin/activate   # Python 3.11 or 3.12
 pip install -r requirements.txt
 
 # 1. Pull nflverse play-by-play (downloads to ml/data/)
 python -m engage8.extract --seasons 2019 2020 2021 2022 2023
 
-# 2. Normalize → canonical schema → engineer features
+# 2. Normalize to the canonical schema and engineer features
 python -m engage8.features
 
-# 3. Train the run/pass + explosive model (time-split, calibrated)
+# 3. Train the run/pass model (time-split, calibrated)
 python -m engage8.train
 
 # 4. Predict a situation
@@ -97,12 +95,12 @@ engage_eight/
 
 ## Data sources
 
-- **[nflverse / nflfastR](https://github.com/nflverse)** via
-  [`nfl_data_py`](https://github.com/cooperdff/nfl_data_py) — open NFL
-  play-by-play, EPA, win probability. Free for public use.
-- **Manual charting** — chart any team's plays into a CSV and run the same
-  tendency + prediction engine on them.
+- **nflverse / nflfastR** ([github.com/nflverse](https://github.com/nflverse)):
+  open NFL play-by-play with EPA and win probability. The pipeline downloads the
+  published season parquet files directly, so there's no extra loader dependency.
+- **Manual charting**: chart any team's plays into a CSV and run the same tendency
+  and prediction engine on them.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE).

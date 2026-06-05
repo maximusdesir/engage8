@@ -1,7 +1,7 @@
 """Train the run/pass (and explosive) models with HONEST evaluation.
 
 Key correctness choices:
-  * Time-based split (train on older seasons, test on the newest) — never a
+  * Time-based split (train on older seasons, test on the newest), never a
     random split, which leaks future plays and inflates accuracy.
   * Probability calibration on a held-out season, so the reported "63% pass"
     actually means ~63% over many such situations.

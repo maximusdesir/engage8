@@ -1,4 +1,4 @@
-"""Tendency aggregation — the coach-facing "what do they like to do" engine.
+"""Tendency aggregation: the coach-facing "what do they like to do" engine.
 
 Works on any canonical plays frame (nflverse OR manually charted opponent
 data), so the same code self-scouts and opponent-scouts.
@@ -93,7 +93,7 @@ def main() -> None:
             raise SystemExit(f"No plays for team '{args.team}'.")
 
     table = tendency_table(plays, args.split)
-    title = f"{args.team or 'ALL'} — tendencies by {args.split}"
+    title = f"{args.team or 'ALL'} tendencies by {args.split}"
     print("\n" + title)
     print("=" * len(title))
     print(table.to_string(index=False))

@@ -1,4 +1,4 @@
-"""Tests that run on synthetic data — no network or LightGBM required.
+"""Tests that run on synthetic data, no network or LightGBM required.
 
     cd ml && python -m pytest        # or: python tests/test_pipeline.py
 """
@@ -19,7 +19,7 @@ def _synthetic_plays(n: int = 400, seed: int = 8) -> pd.DataFrame:
     for i in range(n):
         down = int(rng.integers(1, 5))
         dist = int(rng.integers(1, 15))
-        # Pass more likely on 3rd & long — gives the model real signal.
+        # Pass more likely on 3rd and long, which gives the model real signal.
         p_pass = 0.45 + (0.4 if (down == 3 and dist >= 7) else 0.0) - (0.2 if dist <= 2 else 0)
         is_pass = rng.random() < min(max(p_pass, 0.05), 0.95)
         yards = int(rng.integers(-3, 25))
@@ -80,4 +80,4 @@ if __name__ == "__main__":
     test_lag_features_are_chronological()
     test_tendency_table_sums_to_100()
     test_third_and_long_is_pass_heavy()
-    print("All tests passed ✅")
+    print("All tests passed")

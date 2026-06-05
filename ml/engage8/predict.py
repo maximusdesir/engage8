@@ -63,7 +63,7 @@ def predict_situation(artifact: dict, **kw) -> dict:
     feats = artifact["features"]
     cat = set(artifact["categorical_features"])
     X = _situation_row(feats, **kw)
-    # Numeric features must be float (NaN ok — LightGBM handles missingness);
+    # Numeric features must be float (NaN ok, LightGBM handles missingness);
     # categoricals must be category dtype.
     for c in feats:
         if c in cat:
@@ -96,7 +96,7 @@ def _explain(kw: dict, p_pass: float) -> str:
     if dist <= 2:
         bits.append("short yardage (run-leaning)")
     lean = "pass" if p_pass >= 0.5 else "run"
-    return f"{', '.join(bits)} → {int(round(max(p_pass,1-p_pass)*100))}% {lean}."
+    return f"{', '.join(bits)}: {int(round(max(p_pass,1-p_pass)*100))}% {lean}."
 
 
 def _ordinal(n: int) -> str:

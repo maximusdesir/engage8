@@ -1,5 +1,5 @@
-# Engage Eight — ML pipeline dependencies
-# Works on Python 3.11–3.14. We pull nflverse play-by-play parquet directly
+# Engage Eight ML pipeline dependencies
+# Works on Python 3.11 to 3.14. We pull nflverse play-by-play parquet directly
 # from the nflverse-data GitHub releases (see engage8/extract.py), so no
 # nfl_data_py dependency is required.
 

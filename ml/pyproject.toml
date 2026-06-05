@@ -1,7 +1,7 @@
 [project]
 name = "engage8-ml"
 version = "0.1.0"
-description = "Engage Eight — football pre-snap prediction & tendency ML pipeline"
+description = "Engage Eight: football pre-snap prediction and tendency ML pipeline"
 requires-python = ">=3.10"
 readme = "README.md"
 
