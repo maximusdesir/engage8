@@ -1,15 +1,14 @@
-# Engage Eight 🏈
+# Engage Eight
 
 > AI pre-snap prediction & defensive tendency engine.
-> *"Eight in the box" — read the offense before the snap.*
 
 Engage Eight ingests football play-by-play data and answers the two questions a
 defensive coordinator asks before every snap:
 
-1. **What is the offense most likely to do?** — a calibrated run/pass + explosive
+1. **What is the offense most likely to do?** A calibrated run/pass + explosive
    probability (and a play-leaning), given down, distance, field position, score,
    time, and formation/personnel when available.
-2. **What are their tendencies?** — a tendency matrix sliced by down & distance,
+2. **What are their tendencies?** A tendency matrix sliced by down & distance,
    field zone, formation, and hash, so you can self-scout or scout an opponent.
 
 It trains on free, open **nflverse** NFL play-by-play, and also lets you **chart a
@@ -19,10 +18,18 @@ real opponent by hand** so it works for teams that aren't in public datasets.
 
 ## Why this exists
 
-Defensive coaches spend hundreds of hours charting film to build the probabilistic
-model that elite players (Kuechly, Ray Lewis) hold in their heads. Engage Eight
-automates the tedious part: aggregating tendencies and turning situation into a
-calibrated prediction.
+I grew up watching Luke Kuechly, Peyton Manning, Tom Brady, and Ray Lewis. What
+truly set them apart wasn't athleticism, it was football IQ. Diagnosing what the
+offense or defense was going to do *before the snap* let them play faster and make
+plays no one else could.
+
+I play football too, and as a defensive player I've learned how much scout film
+matters and how slow it is to watch. I wanted a tool that could speed up film
+study and let me quiz myself on my own pre-snap reads.
+
+I believe AI can revolutionize football, and I wanted to build something that
+starts to show how; even with almost no resources. Now imagine what a team with
+millions in budget could do.
 
 **Honest about accuracy.** Run/pass from situation lands around **72–75%**.
 Predicting a *specific* play family from public data is much harder (~30–45%
@@ -36,9 +43,10 @@ recent) — never a random split, which leaks the future and inflates results.
 
 | Layer | Status |
 |-------|--------|
-| Data + ML pipeline (`ml/`) | ✅ Working end-to-end on real NFL data |
-| API (`api/`) | ⏳ Planned |
-| Web app (`web/`) | ⏳ Planned |
+| Data + ML pipeline (`ml/`) |  Working end-to-end on real NFL data |
+| API (`api/`) | Planned |
+| Web app (`web/`) | Planned |
+| Hudl Support | Planned |
 
 ### Measured results (run/pass, 2019–2023)
 
