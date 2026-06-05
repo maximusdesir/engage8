@@ -1,0 +1,17 @@
+[project]
+name = "engage8-ml"
+version = "0.1.0"
+description = "Engage Eight — football pre-snap prediction & tendency ML pipeline"
+requires-python = ">=3.10"
+readme = "README.md"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["engage8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
