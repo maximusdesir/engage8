@@ -27,8 +27,9 @@ class TendencyResponse(BaseModel):
 
 
 class UploadSummary(BaseModel):
-    """Result of ingesting a manual charting CSV."""
+    """Result of ingesting a charting or Hudl CSV."""
 
     inserted: int
     teams: list[str]
+    source: str          # "charting" or "hudl" (the format actually used)
     message: str

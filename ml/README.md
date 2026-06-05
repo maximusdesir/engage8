@@ -40,6 +40,16 @@ python -m engage8.charting --template          # writes data/charting_template.c
 python -m engage8.charting --load my_opponent.csv   # tendencies on charted data
 ```
 
+Already have Hudl? Export a breakdown as CSV and load it directly. The adapter
+maps Hudl's columns (DN, DIST, YARD LN, ODK, OFF FORM, OFF PLAY, ...) into the
+canonical schema, converts the yard line (negative = own side, positive =
+opponent side), and keeps offensive run/pass plays.
+
+```bash
+python -m engage8.hudl --template              # writes a sample Hudl-style CSV
+python -m engage8.hudl --load hudl_export.csv --team LINCOLN
+```
+
 ## Module map
 
 | Module | Job |
@@ -51,6 +61,7 @@ python -m engage8.charting --load my_opponent.csv   # tendencies on charted data
 | `predict.py` | Single-situation calibrated prediction with a "why" |
 | `tendencies.py` | Run/pass and top-play aggregation by down/dist, zone, formation, hash |
 | `charting.py` | Manual opponent charting CSV into the canonical schema |
+| `hudl.py` | Hudl breakdown CSV adapter (maps Hudl columns into the schema) |
 
 ## Why these choices
 

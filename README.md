@@ -44,7 +44,7 @@ A random split would leak the future and inflate the results.
 | Data + ML pipeline (`ml/`) | Working end-to-end on real NFL data |
 | API (`api/`) | Planned |
 | Web app (`web/`) | Planned |
-| Hudl support | Planned |
+| Hudl CSV import | Working (breakdown export to plays) |
 
 ### Measured results (run/pass, 2019-2023)
 

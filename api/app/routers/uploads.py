@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import tempfile
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.db.models import User
@@ -25,16 +25,25 @@ MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 @router.post("/uploads", response_model=UploadSummary)
 def upload_charting(
     file: UploadFile = File(...),
+    source: str = Form("auto"),
+    team: str | None = Form(None),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> UploadSummary:
-    """Ingest a charting CSV into the plays table.
+    """Ingest a charting or Hudl CSV into the plays table.
 
-    Requires authentication. The uploaded file is read with a size cap, written
-    to a temp path, parsed/validated by the ml charting loader, and removed
-    afterward. Parse or validation failures (including the loader's
-    ``SystemExit``) become a 400 with the underlying message.
+    Requires authentication. ``source`` is auto|charting|hudl ("auto" sniffs the
+    headers). ``team`` optionally labels offense_team on rows missing one (handy
+    when tagging an opponent's Hudl export). The file is read with a size cap,
+    written to a temp path, parsed by the matching ml loader, and removed
+    afterward. Parse failures (including the loader's ``SystemExit``) become a
+    400 with the underlying message.
     """
+    if source not in tendency_service.VALID_SOURCES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid source '{source}'. Use one of {list(tendency_service.VALID_SOURCES)}.",
+        )
     # Read one byte past the limit to detect oversize without loading it all.
     content = file.file.read(MAX_UPLOAD_BYTES + 1)
     if len(content) > MAX_UPLOAD_BYTES:
@@ -51,11 +60,13 @@ def upload_charting(
             tmp.write(content)
             tmp_path = tmp.name
 
-        summary = tendency_service.ingest_charting_csv(db, tmp_path)
+        summary = tendency_service.ingest_csv(
+            db, tmp_path, source=source, default_team=team
+        )
     except (Exception, SystemExit) as exc:  # noqa: BLE001
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Could not ingest charting file: {exc}",
+            detail=f"Could not ingest {source} file: {exc}",
         ) from exc
     finally:
         if tmp_path is not None and os.path.exists(tmp_path):
@@ -63,5 +74,8 @@ def upload_charting(
 
     teams = summary["teams"]
     inserted = summary["inserted"]
-    message = f"Inserted {inserted} plays for {len(teams)} team(s)."
-    return UploadSummary(inserted=inserted, teams=teams, message=message)
+    resolved = summary["source"]
+    message = f"Inserted {inserted} plays from {resolved} export for {len(teams)} team(s)."
+    return UploadSummary(
+        inserted=inserted, teams=teams, source=resolved, message=message
+    )

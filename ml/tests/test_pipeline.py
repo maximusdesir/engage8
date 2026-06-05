@@ -75,9 +75,31 @@ def test_third_and_long_is_pass_heavy():
         assert row.iloc[0]["pass_pct"] > 55  # signal we baked in
 
 
+def test_hudl_adapter_maps_and_converts():
+    import tempfile
+    from engage8.hudl import load_hudl, looks_like_hudl
+
+    csv = ("PLAY #,ODK,DN,DIST,YARD LN,HASH,OFF FORM,OFF PLAY,PLAY TYPE,PERS,GN/LS,QTR\n"
+           "1,O,1,10,-25,L,Trips,Inside Zone,Run,11,5,1\n"
+           "2,O,3,8,+35,R,Empty,Four Verticals,Pass,10,12,2\n"
+           "3,D,1,10,+20,L,,,,,0,2\n")     # defense row must be dropped
+    with tempfile.NamedTemporaryFile("w", suffix=".csv", delete=False) as f:
+        f.write(csv)
+        path = f.name
+
+    assert looks_like_hudl(path)
+    df = load_hudl(path, default_offense_team="LINCOLN")
+    assert len(df) == 2                              # defense row filtered out
+    assert list(df["yardline_100"]) == [75, 35]      # own 25 -> 75, opp 35 -> 35
+    assert list(df["play_type"]) == ["run", "pass"]
+    assert list(df["hash"]) == ["L", "R"]
+    assert set(df["offense_team"]) == {"LINCOLN"}     # team label applied
+
+
 if __name__ == "__main__":
     test_build_features_has_target_and_flags()
     test_lag_features_are_chronological()
     test_tendency_table_sums_to_100()
     test_third_and_long_is_pass_heavy()
+    test_hudl_adapter_maps_and_converts()
     print("All tests passed")

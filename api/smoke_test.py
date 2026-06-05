@@ -94,6 +94,20 @@ check("POST /uploads with token", r.status_code == 200, r.text[:200])
 if r.status_code == 200:
     print(f"        -> inserted {r.json()['inserted']} plays")
 
+# 8b. Hudl CSV upload, format auto-detected, team labeled
+hudl_csv = ("PLAY #,ODK,DN,DIST,YARD LN,HASH,OFF FORM,OFF PLAY,PLAY TYPE,MOTION,PERS,GN/LS,QTR\n"
+            "1,O,1,10,-25,L,Trips Rt,Inside Zone,Run,Jet,11,5,1\n"
+            "2,O,3,8,+35,R,Empty,Four Verticals,Pass,,10,12,2\n"
+            "3,D,1,10,+20,L,,,,,,0,2\n")
+r = c.post("/uploads", data={"source": "auto", "team": "LINCOLN"},
+           files={"file": ("export.csv", hudl_csv, "text/csv")}, headers=auth)
+detected = r.json().get("source") if r.status_code == 200 else None
+check("POST /uploads Hudl (auto-detected)",
+      r.status_code == 200 and detected == "hudl" and r.json()["inserted"] == 2
+      and "LINCOLN" in r.json()["teams"], r.text[:200])
+if r.status_code == 200:
+    print(f"        -> detected '{detected}', inserted {r.json()['inserted']} (defense row dropped)")
+
 # 9. signup no longer accepts a client-set role (fix #2): role is ignored
 r = c.post("/auth/signup", json={"email": "sneaky@x.com", "password": "pw12345",
                                  "role": "admin"})

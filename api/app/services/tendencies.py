@@ -21,7 +21,10 @@ if _ml_root not in sys.path:
     sys.path.insert(0, _ml_root)
 
 from engage8.charting import load_charting  # noqa: E402
+from engage8.hudl import load_hudl, looks_like_hudl  # noqa: E402
 from engage8.tendencies import SPLITS, tendency_table  # noqa: E402
+
+VALID_SOURCES = ("auto", "charting", "hudl")
 
 # Canonical columns tendency_table actually reads off the frame.
 _TENDENCY_COLUMNS = (
@@ -109,19 +112,11 @@ def get_tendencies(
     return table.to_dict(orient="records")
 
 
-def ingest_charting_csv(db: Session, file_path: str) -> dict:
-    """Load a charting CSV into canonical rows and persist them as Plays.
-
-    Returns a summary with the insert count, the offensive teams seen, and a
-    short preview of the down/distance tendency table.
-    """
-    df = load_charting(file_path)
-
+def _persist_canonical(db: Session, df, source: str) -> dict:
+    """Insert a canonical-schema DataFrame as Play rows and summarize."""
     plays: list[Play] = []
     for record in df.to_dict(orient="records"):
-        values = {}
-        for col in _PLAY_COLUMNS:
-            values[col] = _none_if_na(record.get(col))
+        values = {col: _none_if_na(record.get(col)) for col in _PLAY_COLUMNS}
         explosive = values.get("explosive")
         values["explosive"] = None if explosive is None else bool(explosive)
         play = Play(**values)
@@ -131,10 +126,43 @@ def ingest_charting_csv(db: Session, file_path: str) -> dict:
     db.commit()
 
     teams = sorted({p.offense_team for p in plays if p.offense_team is not None})
-    preview = tendency_table(df).head().to_dict(orient="records")
-
+    preview = tendency_table(df).head().to_dict(orient="records") if len(df) else []
     return {
         "inserted": len(plays),
         "teams": teams,
+        "source": source,
         "split_preview": preview,
     }
+
+
+def ingest_csv(
+    db: Session, file_path: str, source: str = "auto", default_team: str | None = None
+) -> dict:
+    """Load a charting OR Hudl CSV into canonical rows and persist them.
+
+    ``source`` is one of auto|charting|hudl. With "auto" the file's headers are
+    sniffed to pick the right loader. ``default_team`` labels offense_team on
+    rows that don't carry one (useful for tagging an opponent's export).
+    """
+    if source not in VALID_SOURCES:
+        raise ValueError(
+            f"Unknown source '{source}'. Choose from {list(VALID_SOURCES)}."
+        )
+    resolved = source
+    if resolved == "auto":
+        resolved = "hudl" if looks_like_hudl(file_path) else "charting"
+
+    if resolved == "hudl":
+        df = load_hudl(file_path, default_offense_team=default_team)
+    else:
+        df = load_charting(file_path)
+        if default_team:
+            blank = df["offense_team"].isna() | (df["offense_team"].astype(str) == "")
+            df.loc[blank, "offense_team"] = default_team
+
+    return _persist_canonical(db, df, resolved)
+
+
+def ingest_charting_csv(db: Session, file_path: str) -> dict:
+    """Backward-compatible wrapper that forces the charting format."""
+    return ingest_csv(db, file_path, source="charting")
