@@ -63,6 +63,28 @@ time remaining, field position, score differential, and down and distance. For
 example, it calls 89% pass on 3rd-and-8 and 85% run on 3rd-and-1 at the 2-yard
 line.
 
+## Roadmap
+
+Planned next, roughly in priority order:
+
+1. **Formation and pre-snap motion tendencies.** The current model reads the
+   situation only (down, distance, field position, score, time), because open
+   nflverse data has no reliable formation or motion tags. The biggest accuracy
+   gain is feeding in alignment and motion once they are captured (through Hudl
+   imports and manual charting). That is what a middle linebacker actually keys
+   on: if a team lines up in Pro Right on 3rd down and jet-motions the slot, it
+   can be 98% run, and the model should say so.
+
+2. **Per-team and per-coordinator model training.** Instead of one
+   league-average model, train or fine-tune a model per opponent so week-to-week
+   scouting reflects that specific team's tendencies. This fits the Hudl
+   workflow: import a team's breakdown, train on it, and get a scouting-ready
+   model for that week.
+
+3. **Web dashboard.** A Next.js frontend (the tendency matrix plus a
+   predict/recommend screen) deployed on Vercel, so coaches and players use the
+   tool in a browser instead of the API docs.
+
 ## Quickstart (ML pipeline)
 
 ```bash
