@@ -8,11 +8,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 API_ROOT = Path(__file__).resolve().parent.parent      # api/
 PROJECT_ROOT = API_ROOT.parent                          # engage_eight/
 ML_ROOT = PROJECT_ROOT / "ml"
+
+# Placeholder used only for local development. Production must override it.
+INSECURE_DEFAULT_SECRET = "dev-secret-change-me"
 
 
 class Settings(BaseSettings):
@@ -24,8 +28,9 @@ class Settings(BaseSettings):
     # SQLite by default; set ENGAGE8_DATABASE_URL to a Postgres URL in prod.
     database_url: str = f"sqlite:///{API_ROOT / 'engage8.db'}"
 
-    # Auth
-    jwt_secret: str = "dev-secret-change-me"
+    # Auth. In production (debug=False) jwt_secret MUST be overridden via
+    # ENGAGE8_JWT_SECRET; see the validator below.
+    jwt_secret: str = INSECURE_DEFAULT_SECRET
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
 
@@ -35,6 +40,20 @@ class Settings(BaseSettings):
 
     # CORS for the future Next.js frontend.
     cors_origins: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+    @model_validator(mode="after")
+    def _require_strong_secret_in_prod(self):
+        """Refuse to start in production with the insecure default secret.
+
+        With ENGAGE8_DEBUG=false, a real ENGAGE8_JWT_SECRET must be set, or
+        anyone who has read the (public) source could forge auth tokens.
+        """
+        if not self.debug and self.jwt_secret in ("", INSECURE_DEFAULT_SECRET):
+            raise ValueError(
+                "ENGAGE8_JWT_SECRET must be set to a strong, unique value when "
+                "ENGAGE8_DEBUG is false. Generate one with: openssl rand -hex 32"
+            )
+        return self
 
 
 settings = Settings()

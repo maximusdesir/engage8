@@ -83,4 +83,21 @@ if r.status_code == 200:
 r = c.get("/tendencies", params={"split": "not_a_split"})
 check("GET /tendencies bad split -> 400", r.status_code == 400, r.status_code)
 
+# 8. uploads now require auth (fix #3)
+csv = ("offense_team,down,ydstogo,yardline_100,play_type,result_yards\n"
+       "CENTRAL,1,10,75,run,5\nCENTRAL,3,8,40,pass,12\n")
+r = c.post("/uploads", files={"file": ("chart.csv", csv, "text/csv")})
+check("POST /uploads without token -> 401", r.status_code == 401, r.status_code)
+
+r = c.post("/uploads", files={"file": ("chart.csv", csv, "text/csv")}, headers=auth)
+check("POST /uploads with token", r.status_code == 200, r.text[:200])
+if r.status_code == 200:
+    print(f"        -> inserted {r.json()['inserted']} plays")
+
+# 9. signup no longer accepts a client-set role (fix #2): role is ignored
+r = c.post("/auth/signup", json={"email": "sneaky@x.com", "password": "pw12345",
+                                 "role": "admin"})
+check("POST /auth/signup ignores role", r.status_code in (200, 201)
+      and r.json()["role"] == "coach", r.json().get("role"))
+
 print(f"\n{ok} checks passed.")

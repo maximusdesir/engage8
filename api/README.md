@@ -35,7 +35,7 @@ production.
 | POST | `/predict` | no | Run/pass probability for a situation |
 | POST | `/recommend` | no | Predicted offense + ranked defensive calls |
 | GET | `/tendencies` | no | Tendency matrix by down/dist, zone, formation, hash |
-| POST | `/uploads` | no | Upload a charting CSV, ingest as plays |
+| POST | `/uploads` | yes | Upload a charting CSV (max 5 MB), ingest as plays |
 
 ## Layout
 

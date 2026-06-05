@@ -5,11 +5,15 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 
 class UserCreate(BaseModel):
-    """Signup payload."""
+    """Signup payload.
+
+    Note: role is intentionally NOT accepted here. Letting a client choose its
+    own role at signup is a privilege-escalation hole; the role defaults to
+    "coach" server-side and is only changed through a trusted admin path.
+    """
 
     email: EmailStr
     password: str
-    role: str = "coach"
 
 
 class UserOut(BaseModel):

@@ -11,31 +11,44 @@ import tempfile
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
-from app.deps import get_db
+from app.db.models import User
+from app.deps import get_current_user, get_db
 from app.schemas.tendency import UploadSummary
 from app.services import tendencies as tendency_service
 
 router = APIRouter(tags=["uploads"])
+
+# Cap upload size so a single request can't exhaust memory.
+MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
 @router.post("/uploads", response_model=UploadSummary)
 def upload_charting(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
 ) -> UploadSummary:
     """Ingest a charting CSV into the plays table.
 
-    Public endpoint (no auth). The uploaded file is written to a temp path,
-    parsed/validated by the ml charting loader, and removed afterward. Parse
-    or validation failures (including the loader's ``SystemExit``) become a
-    400 with the underlying message.
+    Requires authentication. The uploaded file is read with a size cap, written
+    to a temp path, parsed/validated by the ml charting loader, and removed
+    afterward. Parse or validation failures (including the loader's
+    ``SystemExit``) become a 400 with the underlying message.
     """
+    # Read one byte past the limit to detect oversize without loading it all.
+    content = file.file.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="Charting file too large (max 5 MB).",
+        )
+
     tmp_path: str | None = None
     try:
         with tempfile.NamedTemporaryFile(
             delete=False, suffix=".csv"
         ) as tmp:
-            tmp.write(file.file.read())
+            tmp.write(content)
             tmp_path = tmp.name
 
         summary = tendency_service.ingest_charting_csv(db, tmp_path)
