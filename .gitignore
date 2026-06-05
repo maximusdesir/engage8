@@ -18,6 +18,10 @@ ml/artifacts/
 .env
 .env.local
 
+# SQLite dev database
+*.db
+api/engage8.db
+
 # Node / Next.js
 node_modules/
 .next/
